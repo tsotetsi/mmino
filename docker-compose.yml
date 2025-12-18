@@ -1,0 +1,99 @@
+secrets:
+  postgres_user:
+    file: .secrets/postgres_user.txt
+  postgres_password:
+    file: .secrets/postgres_password.txt
+  healthcheck_user:
+    file: .secrets/healthcheck_user.txt
+  healthcheck_password:
+    file: .secrets/healthcheck_password.txt
+  minio_root_password:
+    file: .secrets/minio_root_password.txt
+  minio_root_user:
+    file: .secrets/minio_root_user.txt
+  mmino_app_password:
+    file: .secrets/mmino_app_password.txt
+
+x-common-volumes: &common-volumes
+  - ./shared_data:/shared_data
+  - ./logs:/app/logs
+
+x-common-environment: &common-environment
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: 5432
+  MINIO_ENDPOINT: minio:9000
+  MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+  MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+  S3_ENDPOINT_URL: http://minio:9000
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${POSTGRES_DB:-mmino_db}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --data-checksums
+      HEALTHCHECK_USER_FILE: /run/secrets/healthcheck_user
+      HEALTHCHECK_PASSWORD_FILE: /run/secrets/healthcheck_password
+    secrets:
+      - postgres_user
+      - postgres_password
+      - healthcheck_user
+      - healthcheck_password
+      - mmino_app_password
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_READ_SEARCH
+      - FOWNER
+      - SETGID
+      - SETUID
+    mem_reservation: 256m
+    deploy:
+      resources:
+        reservations:
+          memory: 256m
+          cpus: 0.5
+        limits:
+          memory: 1024m
+          cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$(cat /run/secrets/healthcheck_password) pg_isready -U healthcheck_user -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    ports:
+      - ${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}
+    networks:
+      - mmino-network
+    volumes:
+      - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+      - ./postgres/postgresql.conf:/var/lib/postgresql/data/postgresql.conf:ro
+      - ./postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf:ro
+      - mmino_data:/var/lib/postgresql/data
+
+volumes:
+  mmino_data:
+
+networks:
+  mmino-network:
+    driver: bridge
+    name: mmino-network
