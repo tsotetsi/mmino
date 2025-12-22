@@ -19,15 +19,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-8 md:py-0">
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
-          <div className="mr-4 hidden md:flex">
-            <a href="/" className="mr-6 flex items-center space-x-2">
-              <span className="hidden font-bold sm:inline-block">
-                Mmino
-              </span>
-            </a>
-          </div>
+          <a href="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">
+              Mmino
+            </span>
+          </a>
           <div className="flex items-center justify-end space-x-2">
             {isAuthenticated ? (
               <>
