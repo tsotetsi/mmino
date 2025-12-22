@@ -1,0 +1,4 @@
+*
+!Dockerfile.redis
+!redis.conf
+!docker-entrypoint.sh

@@ -1,0 +1,54 @@
+# Stage 1: The Builder stage.
+FROM redis:7-alpine AS builder
+
+# Define GOSU_VERSION and the correct SHA256SUM.
+ARG GOSU_VERSION='1.19'
+# GOSU_SHA256 for gosu-amd64-1.19
+ARG GOSU_SHA256='52c8749d0142edd234e9d6bd5237dff2d81e71f43537e2f4f66f75dd4b243dd0'
+
+RUN set -eux; \
+    # Install dependencies: curl (for download), ca-certificates, and coreutils (for sha256sum)
+    apk add --no-cache curl ca-certificates coreutils; \
+    \
+    # Determine the system architecture reported by Alpine
+    ARCH="$(apk --print-arch)"; \
+    \
+    # *** FIX: Map Alpine arch names (x86_64) to GOSU release names (amd64) ***
+    case "$ARCH" in \
+        x86_64) GOSU_RELEASE_ARCH='amd64' ;; \
+        aarch64) GOSU_RELEASE_ARCH='arm64' ;; \
+        *) echo "Unsupported architecture: $ARCH"; exit 1 ;; \
+    esac; \
+    \
+    GOSU_FILENAME="gosu-$GOSU_RELEASE_ARCH"; \
+    GOSU_DOWNLOAD_URL="https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/$GOSU_FILENAME"; \
+    \
+    # Download gosu: -f fails on HTTP errors, -S shows error, -L follows redirects
+    curl -o /tmp/gosu -fSL "$GOSU_DOWNLOAD_URL"; \
+    \
+    # *** CRUCIAL: Verify the downloaded binary against the known checksum ***
+    echo "$GOSU_SHA256  /tmp/gosu" | sha256sum -c -; \
+    \
+    # Move binary to final location and make it executable
+    mv /tmp/gosu /usr/local/bin/gosu; \
+    chmod +x /usr/local/bin/gosu; \
+    \
+    # Cleanup unnecessary build dependencies
+    apk del curl ca-certificates coreutils; \
+    rm -rf /var/cache/apk/*
+
+# Copy configuration and entrypoint script
+COPY redis.conf /usr/local/etc/redis/redis.conf
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+# --- Stage 2: Final Stage (Minimal Runtime Image) ---
+FROM redis:7-alpine
+
+# Copy necessary files from the builder stage
+COPY --from=builder /usr/local/etc/redis/redis.conf /usr/local/etc/redis/redis.conf
+COPY --from=builder --chmod=755 /usr/local/bin/gosu /usr/local/bin/gosu
+COPY --from=builder --chmod=755 /docker-entrypoint.sh /docker-entrypoint.sh
+
+# Set entrypoint and default command
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
