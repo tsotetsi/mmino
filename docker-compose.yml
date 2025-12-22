@@ -13,15 +13,16 @@ secrets:
     file: .secrets/minio_root_user.txt
   mmino_app_password:
     file: .secrets/mmino_app_password.txt
-
-x-common-volumes: &common-volumes
-  - ./shared_data:/shared_data
-  - ./logs:/app/logs
+  secret_key:
+    file: .secrets/secret_key.txt
+  redis_password:
+    file: .secrets/redis_password.txt
 
 x-common-environment: &common-environment
   REDIS_HOST: redis
   REDIS_PORT: 6379
   POSTGRES_HOST: postgres
+  POSTGRES_DB: mmino_db
   POSTGRES_PORT: 5432
   MINIO_ENDPOINT: minio:9000
   MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
@@ -29,6 +30,7 @@ x-common-environment: &common-environment
   S3_ENDPOINT_URL: http://minio:9000
 
 services:
+  # ===== DATABASE =====
   postgres:
     build:
       context: ./postgres
@@ -90,8 +92,248 @@ services:
       - ./postgres/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf:ro
       - mmino_data:/var/lib/postgresql/data
 
+  # ===== CACHE & QUEUE =====
+  redis:
+    build:
+      context: ./redis
+      dockerfile: Dockerfile.redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - mmino-network
+    environment:
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+    secrets:
+      - redis_password
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a $$(cat /run/secrets/redis_password) ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+
+  # ===== OBJECT STORAGE (MinIO) =====
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - mmino-network
+
+  # ===== MAIN API SERVICE =====
+  api:
+    build:
+      context: .
+      dockerfile: audio-analysis/Dockerfile
+    image: mmino-api
+    container_name: mmino-api
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      <<: *common-environment
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      SECRET_KEY: /run/secrets/secret_key
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      UPLOAD_EXPIRY_HOURS: 24
+    secrets:
+      - postgres_user
+      - postgres_password
+      - mmino_app_password
+      - redis_password
+      - secret_key
+    volumes:
+      - ./shared_data:/shared_data
+      - ./logs:/app/logs
+      - ./audio-analysis:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - mmino-network
+    command: >
+      sh -c "
+        export POSTGRES_USER=$$(cat $$POSTGRES_USER_FILE) &&
+        export POSTGRES_PASSWORD=$$(cat $$POSTGRES_PASSWORD_FILE) &&
+        export REDIS_PASSWORD=$$(cat $$REDIS_PASSWORD_FILE) &&
+        alembic -c /app/alembic.ini upgrade head &&
+        uvicorn mmino.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+  # ===== MIGRATIONS =====
+  migrations:
+    build:
+      context: .
+      dockerfile: audio-analysis/Dockerfile
+    secrets:
+      - postgres_user
+      - postgres_password
+    environment:
+      <<: *common-environment
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_HOST: postgres
+    command: >
+      sh -c "
+        export POSTGRES_USER=$(cat $$POSTGRES_USER_FILE) &&
+        export POSTGRES_PASSWORD=$(cat $$POSTGRES_PASSWORD_FILE) &&
+        export POSTGRES_HOST=postgres &&
+        alembic -c /app/alembic.ini upgrade head
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mmino-network
+
+  # ===== CELERY WORKER (for async processing) =====
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      <<: *common-environment
+      FFMPEG_THREADS: 2
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    volumes:
+      - ./shared_data:/shared_data
+      - ./logs:/app/logs
+    secrets:
+      - redis_password
+    depends_on:
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      # api:
+      #   condition: service_started
+    networks:
+      - mmino-network
+    command: >
+      sh -c "
+        export REDIS_PASSWORD=$$(cat $$REDIS_PASSWORD_FILE) &&
+        celery -A mmino.worker.tasks worker 
+        --loglevel=info 
+        --concurrency=4
+        "
+
+  # ===== CELERY BEAT (for scheduled tasks) =====
+  beat:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    environment:
+      <<: *common-environment
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    volumes:
+      - ./shared_data:/shared_data
+      - ./logs:/app/logs
+    secrets:
+      - redis_password
+    depends_on:
+      - redis
+      - worker
+    networks:
+      - mmino-network
+    command: >
+      sh -c "
+        export REDIS_PASSWORD=$$(cat $$REDIS_PASSWORD_FILE) &&
+        celery -A mmino.worker.tasks beat --loglevel=info
+      "
+
+  # ===== MONITORING (Flower) =====
+  flower:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    ports:
+      - "5555:5555"
+    environment:
+      <<: *common-environment
+      REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    secrets:
+      - redis_password
+    command: >
+      sh -c "
+        export REDIS_PASSWORD=$$(cat $$REDIS_PASSWORD_FILE) &&
+        echo 'Waiting for workers...' &&
+        sleep 10 &&
+        celery -A mmino.worker.tasks flower --port=5555
+      "
+    depends_on:
+      redis:
+        condition: service_healthy
+      worker:
+        condition: service_started
+    networks:
+      - mmino-network
+
+  # ===== NGINX REVERSE PROXY =====
+  nginx:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - shared_data:/shared_data
+    restart: always
+    networks:
+      - mmino-network
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt:rw
+      - ./certbot/www:/var/www/certbot:rw
+    # This command checks for renewal every 12 hours
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - mmino-network
+
 volumes:
   mmino_data:
+  redis_data:
+  shared_data:
+  minio_data:
 
 networks:
   mmino-network:

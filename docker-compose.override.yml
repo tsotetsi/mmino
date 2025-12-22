@@ -1,0 +1,16 @@
+services:
+  redis:
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+  nginx:
+    # Use the local config instead of the production one
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+    # Disable SSL ports for local dev if you want
+    ports:
+      - "80:80"
+
+  certbot:
+    # Disable certbot locally so it doesn't try to renew fake domains
+    entrypoint: ["echo", "Certbot disabled for local dev"]
