@@ -99,6 +99,8 @@ docker-compose down
 ## 🌐 API Usage
 
 - **API Documentation**: Once the application is running, the interactive Swagger UI documentation is available at `http://localhost/docs`.
+- **MinIO**: The MinIO object storage is available at `http://localhost:9000`. Use the credentials from the `.secrets/` directory to log in.
+- **Flower**: The Celery task monitoring dashboard is available at `http://localhost:5555`. Use the credentials from the `.secrets/` directory to log in.
 - **Health Check**: A health check endpoint is available at `http://localhost/health`.
 - **API Prefix**: All API v1 endpoints are prefixed with `/api/v1`.
 
