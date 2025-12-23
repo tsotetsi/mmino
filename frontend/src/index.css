@@ -39,6 +39,26 @@
   --color-dark-charcoal: #1C1D21;
   --color-muted-gray: #3F4043;
   --color-ghost-white: #FBFBFD;
+}
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes scaleAnimation {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
 
   /* Button/Variation Palette */
   --color-soft-gray: #F4F5F8;

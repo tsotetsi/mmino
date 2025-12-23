@@ -18,8 +18,17 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, logoutUser, user } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-8 md:py-0">
+        <div className="flex flex-col min-h-screen relative">
+      {/* Background Image with Animations */}
+      <div
+        className="absolute inset-0 bg-cover bg-center z-0"
+        style={{
+          backgroundImage: `url('/mmino-bg-v4.jpg')`,
+          animation: 'floatAnimation 10s ease-in-out infinite, scaleAnimation 10s ease-in-out infinite',
+        }}
+      ></div>
+      <div className="relative z-10 flex flex-col flex-1">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 md:px-8 md:py-0">
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
           <a href="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold sm:inline-block">
@@ -94,6 +103,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </footer>
     </div>
+  </div>
   );
 };
 
