@@ -14,6 +14,10 @@
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![Celery](https://img.shields.io/badge/Celery-5.6.9-379683?logo=celery&logoColor=white)](https://docs.celeryq.dev/en/stable/)
 [![gitleaks-badge](https://img.shields.io/badge/protected%20by-gitleaks-blue)](https://gitleaks.io/)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -95,6 +99,26 @@ To stop the services:
 ```bash
 docker-compose down
 ```
+
+### Running the Frontend Separately
+
+If you wish to run the frontend application independently (e.g., for development purposes):
+
+1.  **Navigate to the frontend directory**:
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Start the development server**:
+    ```bash
+    npm run dev
+    ```
+    The frontend application will typically be available at `http://localhost:5173` (or another port if 5173 is in use).
 
 ## 🌐 API Usage
 
