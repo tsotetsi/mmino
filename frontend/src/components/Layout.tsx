@@ -32,7 +32,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
           <a href="/" className="mr-6 flex items-center space-x-2">
             <span className="hidden font-bold sm:inline-block">
-              Mmino
+              MminoIO
             </span>
           </a>
           <div className="flex items-center justify-end space-x-2">
