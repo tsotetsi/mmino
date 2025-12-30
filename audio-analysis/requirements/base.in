@@ -1,0 +1,25 @@
+### Core ###
+fastapi[standard]==0.125.0
+
+### Scheduling and Monitoring ###
+celery==5.6.0
+
+### Migrations ###
+sqlalchemy==2.0.45
+alembic==1.17.2
+psycopg2-binary==2.9.11
+
+### Cache and Queue ###
+redis==7.1.0
+
+### Object Storage ###
+minio==7.2.20
+
+### Validation and Settings ###
+email-validator==2.3.0 # Required by FastAPI for EmailStr(and docs).
+pydantic==2.12.5 # # Data validation and settings management.
+pydantic_settings==2.12.0
+
+### Monitoring and logging ###
+structlog==25.5.0
+prometheus-client==0.23.1 # Prometheus monitoring client.
