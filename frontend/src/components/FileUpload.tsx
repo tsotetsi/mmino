@@ -32,7 +32,13 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
 
   return (
     <div className="grid w-full max-w-sm items-center gap-1.5">
-      <Input id="audioFile" type="file" accept="audio/*" onChange={handleFileChange} />
+      <Input
+        id="audioFile"
+        type="file"
+        accept="audio/*"
+        onChange={handleFileChange}
+        className={`bg-white border ${selectedFile ? 'border-blue-500' : 'border-gray-400'}`}
+      />
       <Button onClick={handleUpload} disabled={!selectedFile}>
         Upload Audio
       </Button>

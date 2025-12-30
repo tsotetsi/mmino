@@ -27,6 +27,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           animation: 'floatAnimation 10s ease-in-out infinite, scaleAnimation 10s ease-in-out infinite',
         }}
       ></div>
+      {/* White Overlay */}
+      <div className="absolute inset-0 bg-white opacity-50 z-0"></div>
       <div className="relative z-10 flex flex-col flex-1">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 md:px-8 md:py-0">
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">

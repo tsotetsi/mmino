@@ -39,6 +39,16 @@
   --color-dark-charcoal: #1C1D21;
   --color-muted-gray: #3F4043;
   --color-ghost-white: #FBFBFD;
+
+  /* Button/Variation Palette */
+  --color-soft-gray: #F4F5F8;
+  --color-blue-accent: #81A3E2;
+  --color-snow: #FEFEFE;
+
+  /* Border Radius */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 @keyframes floatAnimation {
@@ -52,23 +62,11 @@
 
 @keyframes scaleAnimation {
   0%, 100% {
-    transform: scale(1);
+    transform: scale(0.99);
   }
   50% {
-    transform: scale(1.04);
+    transform: scale(1);
   }
-}
-
-
-  /* Button/Variation Palette */
-  --color-soft-gray: #F4F5F8;
-  --color-blue-accent: #81A3E2;
-  --color-snow: #FEFEFE;
-
-  /* Border Radius */
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
 }
 
 @layer base {
