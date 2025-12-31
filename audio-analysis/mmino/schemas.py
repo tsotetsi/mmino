@@ -201,6 +201,7 @@ class UserResponse(UserBase):
     id: uuid.UUID
     is_active: bool
     created_at: datetime
+    is_superuser: bool = False
     
     class Config:
         from_attributes = True

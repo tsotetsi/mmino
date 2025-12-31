@@ -43,7 +43,6 @@ async def upload_audio(
     - compress: Apply audio compression
     - spectrogram: Generate spectrogram image
     """
-    
     # Check if user can create new job
     user_id = auth_info.get("user_id")
     if user_id:
