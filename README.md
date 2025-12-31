@@ -127,6 +127,24 @@ If you wish to run the frontend application independently (e.g., for development
 - **Flower**: The Celery task monitoring dashboard is available at `http://localhost:5555`. Use the credentials from the `.secrets/` directory to log in.
 - **Health Check**: A health check endpoint is available at `http://localhost/health`.
 - **API Prefix**: All API v1 endpoints are prefixed with `/api/v1`.
+- **Frontend**: The frontend application is available at `http://localhost:5173` (or another port if 5173 is in use).
+
+## Simple Development Flow Testing for Kubernetes
+
+- **The Steps**:
+- **Switch Context**: eval $(minikube docker-env) (This tells your terminal: "Use Minikube's Docker, not my laptop's.")
+- **Build**: docker build -t mmino-api:latest -f audio-analysis/Dockerfile .
+- **Deploy**: kubectl apply -f minikube-dev.yaml
+- **Note**: Ensure your manifest has imagePullPolicy: Never so K8s doesn't try to look for it online.
+
+### Minikube
+
+If you are running the application on Minikube, you can access the services using the following commands:
+
+- **API**: `minikube service api --url`
+- **Frontend**: `minikube service frontend --url`
+- **MinIO**: `minikube service minio --url`
+- **Flower**: `minikube service flower --url`
 
 ## ⚖️ License
 

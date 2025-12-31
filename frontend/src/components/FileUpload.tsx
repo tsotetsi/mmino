@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import axios from 'axios';
+
+const API_URL = "http://localhost:8000";
 
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
+  onUploadSuccess: (jobId: string, analysisResults: any) => void;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, onUploadSuccess }) => { // Updated prop destructuring
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,11 +24,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = async () => { // Made async
     if (selectedFile) {
-      console.log("Uploading file:", selectedFile.name);
-      // Placeholder for actual upload logic
-      alert(`Uploading: ${selectedFile.name}`);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("operation", "analyze"); // Assuming 'analyze' is an operation type for pre-upload analysis
+
+      try {
+        const response = await axios.post(`${API_URL}/api/v1/upload/`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log("Upload successful:", response.data);
+        alert(`Upload successful! Job ID: ${response.data.job_id}`);
+        onUploadSuccess(response.data.job_id, response.data.analysis_results); // Pass job ID and analysis results
+      } catch (error) {
+        console.error("Upload failed:", error);
+        alert("Upload failed. Please try again.");
+      }
     } else {
       alert("Please select a file first.");
     }

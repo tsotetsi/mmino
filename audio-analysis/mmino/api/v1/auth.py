@@ -29,8 +29,6 @@ async def login(
     """
     OAuth2 compatible token login
     """
-    print("form_data: ", form_data)
-
     # Try to find user by username or email
     user = crud.get_user_by_username(db, form_data.username)
     if not user:
@@ -66,17 +64,6 @@ async def login(
     # Update last login time
     user.last_login_at = datetime.utcnow()
     db.commit()
-
-    print("form_data.username: ", form_data.username)
-    print("user.username: ", user.username)
-    print("user.email: ", user.email)
-    print("user.is_active: ", user.is_active)
-    print("user.last_login_at: ", user.last_login_at)
-    print("access_token_expires: ", access_token_expires)
-    print("refresh_token_expires: ", refresh_token_expires)
-    
-    print("access_token", access_token)
-    print("refresh_token", refresh_token)
     
     return Token(
         access_token=access_token,

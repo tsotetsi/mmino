@@ -2,7 +2,6 @@
 File upload endpoints
 """
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
-from fastapi.responses import JSONResponse
 from typing import Optional, Dict, Any
 import uuid
 import os

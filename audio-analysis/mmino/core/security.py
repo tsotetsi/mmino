@@ -149,10 +149,7 @@ def get_current_user(
     """
     from mmino.db.session import SessionLocal
     token = credentials.credentials
-    print("Inside get_current_user")
-    print("token: ", token)
     payload = verify_access_token(token)
-    print("below payload: ", payload)
     
     user_id = payload.get("sub")
     if user_id is None:
@@ -222,16 +219,10 @@ def verify_api_key(api_key: str) -> Optional[Dict[str, Any]]:
     """
     Verify an API key and return user info if valid
     """
-    print(f"verify_api_key: {api_key}", "type:", type(api_key))
     from mmino.db.session import SessionLocal
     db = SessionLocal()
     try:
         api_key_record = crud.get_api_key(db, api_key)
-        print(f"api_key_record: {api_key_record}")
-        print(f"api_key_record.user_id: {api_key_record.user_id}", "type:", type(api_key_record.user_id))
-        print(f"is the record actinve?", api_key_record.is_active)
-        print(f"check for expiration", api_key_record.expires_at and api_key_record.expires_at < datetime.utcnow())
-        
         if not api_key_record:
             return None
         
@@ -242,17 +233,13 @@ def verify_api_key(api_key: str) -> Optional[Dict[str, Any]]:
         # Check if key has expired
         if api_key_record.expires_at and api_key_record.expires_at < datetime.utcnow():
             return None
-        print("It's not expired.")
         
         # Update last used timestamp
         api_key_record.last_used_at = datetime.utcnow()
         db.commit()
-        print("Done updating last used")
         
         # Get user info
         user = crud.get_user_by_id(db, str(api_key_record.user_id))
-        print(f"check the user user: {user}")
-        print(f"user active: {user.is_active} ")
         if not user or not user.is_active:
             return None
         
@@ -274,10 +261,8 @@ def get_api_key_user(
     """
     Get user from API key header
     """
-    print(f"wololo-{x_api_key}")
     if not x_api_key:
         return None
-    print("Gone-toverify..")
     return verify_api_key(x_api_key)
 
 def require_auth(
@@ -288,7 +273,6 @@ def require_auth(
     Require either JWT token or API key authentication
     """
     # Try to get user from API key first
-    print("inside require_auth, user_or_api_key:", user_or_api_key)
     if user_or_api_key:
         return user_or_api_key
     
