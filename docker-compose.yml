@@ -155,30 +155,25 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-    environment:
-      - MINIO_ROOT_USER_FILE=/run/secrets/minio_root_user
-      - MINIO_ROOT_PASSWORD_FILE=/run/secrets/minio_root_password
     secrets:
       - minio_root_user
       - minio_root_password
-    entrypoint: ["/bin/sh", "-c"]
-    command: |
+    entrypoint: >
+      /bin/sh -c "
       set -e
-
-      echo "Setting MinIO alias..."
-      mc alias set myminio http://minio:9000 \
-        "$(cat /run/secrets/minio_root_user)" \
-        "$(cat /run/secrets/minio_root_password)"
-
-      echo "Creating buckets..."
+      
+      echo 'Setting MinIO alias...'
+      mc alias set myminio http://minio:9000 cat /run/secrets/minio_root_user cat /run/secrets/minio_root_password
+      echo 'Creating buckets...'
       mc mb --ignore-existing myminio/uploads
       mc mb --ignore-existing myminio/processed
       mc mb --ignore-existing myminio/archived
-
-      echo "Setting policies..."
+      
+      echo 'Setting policies...'
       mc anonymous set download myminio/processed
-
-      echo "MinIO initialization complete."
+      
+      echo 'MinIO initialization complete.'
+      "
     networks:
       - mmino-network
 
@@ -270,6 +265,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     networks:
       - mmino-network
 
