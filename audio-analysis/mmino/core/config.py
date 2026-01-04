@@ -1,32 +1,33 @@
 """
 Configuration settings for the MminoIO Audio Processing API
 """
+from functools import lru_cache
+import secrets
+from typing import List, Optional, Dict, Any
+
 from pydantic_settings import BaseSettings
 from pydantic import Field, validator, PostgresDsn, RedisDsn, AnyHttpUrl, ByteSize
-from typing import List, Optional, Dict, Any, Union
-import secrets
-from functools import lru_cache
 
 
 class Settings(BaseSettings):
     # Project
-    PROJECT_NAME: str = Field("MminoIO Audio Processing API", env="mmino")
-    VERSION: str = Field("1.0.0", env="VERSION")
-    DEBUG: bool = Field(False, env="DEBUG")
+    PROJECT_NAME: str = Field(default="MminoIO Audio Processing API", env="mmino")
+    VERSION: str = Field(default="1.0.0", env="VERSION")
+    DEBUG: bool = Field(default=False, env="DEBUG")
     
     # API
-    API_V1_PREFIX: str = Field("/api/v1", env="API_V1_PREFIX")
-    SERVER_HOST: str = Field("0.0.0.0", env="SERVER_HOST")
-    SERVER_PORT: int = Field(8000, env="SERVER_PORT")
+    API_V1_PREFIX: str = Field(default="/api/v1", env="API_V1_PREFIX")
+    SERVER_HOST: str = Field(default="0.0.0.0", env="SERVER_HOST")
+    SERVER_PORT: int = Field(default=8000, env="SERVER_PORT")
     
     # Security
     SECRET_KEY: str = Field(
         default_factory=lambda: secrets.token_urlsafe(32),
         env="SECRET_KEY"
     )
-    ALGORITHM: str = Field("HS256", env="ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
-    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(7, env="REFRESH_TOKEN_EXPIRE_DAYS")
+    ALGORITHM: str = Field(default="HS256", env="ALGORITHM")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
     
     # CORS
     ALLOWED_ORIGINS: List[str] = Field(
@@ -38,10 +39,10 @@ class Settings(BaseSettings):
     )
 
     # Database
-    POSTGRES_HOST: str = Field("postgres", env="POSTGRES_HOST")
-    POSTGRES_USER: str = Field("mmino_admin", env="POSTGRES_USER")
-    POSTGRES_PASSWORD: str = Field("B32qUm3cG5j90yMEwSkYA==", env="POSTGRES_PASSWORD")
-    POSTGRES_DB: str = Field("mmino_db", env="POSTGRES_DB")
+    POSTGRES_HOST: str = Field(default="postgres", env="POSTGRES_HOST")
+    POSTGRES_USER: str = Field(default="mmino_admin", env="POSTGRES_USER")
+    POSTGRES_PASSWORD: str = Field(default="B32qUm3cG5j90yMEwSkYA==", env="POSTGRES_PASSWORD")
+    POSTGRES_DB: str = Field(default="mmino_db", env="POSTGRES_DB")
     DATABASE_URL: Optional[PostgresDsn] = None
     
     @validator("DATABASE_URL", pre=True)
@@ -57,10 +58,10 @@ class Settings(BaseSettings):
         )
     
     # Redis
-    REDIS_HOST: str = Field("redis", env="REDIS_HOST")
-    REDIS_PORT: int = Field(6379, env="REDIS_PORT")
-    REDIS_DB: int = Field(0, env="REDIS_DB")
-    REDIS_PASSWORD: Optional[str] = Field(None, env="REDIS_PASSWORD")
+    REDIS_HOST: str = Field(default="redis", env="REDIS_HOST")
+    REDIS_PORT: int = Field(default=6379, env="REDIS_PORT")
+    REDIS_DB: int = Field(default=0, env="REDIS_DB")
+    REDIS_PASSWORD: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
     # Celery
     CELERY_BROKER_URL: Optional[str] = None
     CELERY_RESULT_BACKEND: Optional[str] = None
@@ -94,8 +95,8 @@ class Settings(BaseSettings):
     # MinIO
     MINIO_ENDPOINT: str
     MINIO_ACCESS_KEY: str
-    MINIO_SECRET_KEY: str = Field("minioadmin123", env="MINIO_SECRET_KEY")
-    MINIO_SECURE: bool = Field(False, env="MINIO_SECURE")
+    MINIO_SECRET_KEY: str = Field(default="minioadmin123", env="MINIO_SECRET_KEY")
+    MINIO_SECURE: bool = Field(default=False, env="MINIO_SECURE")
     S3_ENDPOINT_URL: Optional[AnyHttpUrl] = None
     
     @validator("S3_ENDPOINT_URL", pre=True)
@@ -107,15 +108,15 @@ class Settings(BaseSettings):
         return f"{scheme}://{values.get('MINIO_ENDPOINT')}"
     
     # Buckets
-    UPLOAD_BUCKET: str = Field("uploads", env="UPLOAD_BUCKET")
-    PROCESSED_BUCKET: str = Field("processed", env="PROCESSED_BUCKET")
-    ARCHIVE_BUCKET: str = Field("archived", env="ARCHIVE_BUCKET")
+    UPLOAD_BUCKET: str = Field(default="uploads", env="UPLOAD_BUCKET")
+    PROCESSED_BUCKET: str = Field(default="processed", env="PROCESSED_BUCKET")
+    ARCHIVE_BUCKET: str = Field(default="archived", env="ARCHIVE_BUCKET")
     
     # File Limits
-    MAX_UPLOAD_SIZE: ByteSize = Field(ByteSize(524288000), env="MAX_UPLOAD_SIZE")  # 500MB
-    MAX_CONCURRENT_JOBS: int = Field(10, env="MAX_CONCURRENT_JOBS")
-    UPLOAD_EXPIRY_HOURS: int = Field(24, env="UPLOAD_EXPIRY_HOURS")
-    DOWNLOAD_EXPIRY_HOURS: int = Field(24, env="DOWNLOAD_EXPIRY_HOURS")
+    MAX_UPLOAD_SIZE: ByteSize = Field(default=ByteSize(524288000), env="MAX_UPLOAD_SIZE")  # 500MB
+    MAX_CONCURRENT_JOBS: int = Field(default=10, env="MAX_CONCURRENT_JOBS")
+    UPLOAD_EXPIRY_HOURS: int = Field(default=24, env="UPLOAD_EXPIRY_HOURS")
+    DOWNLOAD_EXPIRY_HOURS: int = Field(default=24, env="DOWNLOAD_EXPIRY_HOURS")
     
     # Allowed file types
     ALLOWED_AUDIO_EXTENSIONS: List[str] = Field(
@@ -134,32 +135,32 @@ class Settings(BaseSettings):
     )
     
     # Rate Limiting
-    RATE_LIMIT_REQUESTS: int = Field(100, env="RATE_LIMIT_REQUESTS")
-    RATE_LIMIT_PERIOD: int = Field(60, env="RATE_LIMIT_PERIOD")  # seconds
+    RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
+    RATE_LIMIT_PERIOD: int = Field(default=60, env="RATE_LIMIT_PERIOD")  # seconds
     
     # Worker Settings
-    CELERY_WORKER_CONCURRENCY: int = Field(4, env="CELERY_WORKER_CONCURRENCY")
-    TASK_TIME_LIMIT: int = Field(300, env="TASK_TIME_LIMIT")  # 5 minutes
-    TASK_SOFT_TIME_LIMIT: int = Field(240, env="TASK_SOFT_TIME_LIMIT")  # 4 minutes
-    TASK_MAX_RETRIES: int = Field(3, env="TASK_MAX_RETRIES")
+    CELERY_WORKER_CONCURRENCY: int = Field(default=4, env="CELERY_WORKER_CONCURRENCY")
+    TASK_TIME_LIMIT: int = Field(default=300, env="TASK_TIME_LIMIT")  # 5 minutes
+    TASK_SOFT_TIME_LIMIT: int = Field(default=240, env="TASK_SOFT_TIME_LIMIT")  # 4 minutes
+    TASK_MAX_RETRIES: int = Field(default=3, env="TASK_MAX_RETRIES")
     
     # Email (for notifications - optional)
-    SMTP_HOST: Optional[str] = Field(None, env="SMTP_HOST")
-    SMTP_PORT: Optional[int] = Field(None, env="SMTP_PORT")
-    SMTP_USER: Optional[str] = Field(None, env="SMTP_USER")
-    SMTP_PASSWORD: Optional[str] = Field(None, env="SMTP_PASSWORD")
-    EMAILS_FROM_EMAIL: Optional[str] = Field(None, env="EMAILS_FROM_EMAIL")
+    SMTP_HOST: Optional[str] = Field(default=None, env="SMTP_HOST")
+    SMTP_PORT: Optional[int] = Field(default=None, env="SMTP_PORT")
+    SMTP_USER: Optional[str] = Field(default=None, env="SMTP_USER")
+    SMTP_PASSWORD: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
+    EMAILS_FROM_EMAIL: Optional[str] = Field(default=None, env="EMAILS_FROM_EMAIL")
     
     # Logging
-    LOG_LEVEL: str = Field("INFO", env="LOG_LEVEL")
-    LOG_FORMAT: str = Field("%(asctime)s - %(name)s - %(levelname)s - %(message)s", env="LOG_FORMAT")
+    LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
+    LOG_FORMAT: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s", env="LOG_FORMAT")
     
     # Health Check
-    HEALTH_CHECK_INTERVAL: int = Field(30, env="HEALTH_CHECK_INTERVAL")
+    HEALTH_CHECK_INTERVAL: int = Field(default=30, env="HEALTH_CHECK_INTERVAL")
     
     # Monitoring
-    ENABLE_METRICS: bool = Field(True, env="ENABLE_METRICS")
-    METRICS_PORT: int = Field(9090, env="METRICS_PORT")
+    ENABLE_METRICS: bool = Field(default=True, env="ENABLE_METRICS")
+    METRICS_PORT: int = Field(default=9090, env="METRICS_PORT")
     
     class Config:
         env_file = ".env"
