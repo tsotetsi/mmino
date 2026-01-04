@@ -1,25 +1,23 @@
 """
-Storage utilities for MinIO/S3 object storage
+Storage utilities for MinIO/S3 object storage.
 """
-from minio import Minio
-from minio.error import S3Error
+from datetime import timedelta
+import io
+import logging
+import os
+import tempfile
+from typing import Optional, List, Dict, Any
+
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
-from typing import Optional, BinaryIO, List, Dict, Any
-import io
-from datetime import datetime, timedelta
-import tempfile
-import os
-import logging
-from urllib.parse import urlparse
+from minio import Minio
 
 from mmino.core.config import settings
 
-# Configure logging
 logger = logging.getLogger(__name__)
 
-# Initialize MinIO client
+# Init MinIO client.
 try:
     minio_client = Minio(
         endpoint=settings.MINIO_ENDPOINT,
@@ -27,8 +25,8 @@ try:
         secret_key=settings.MINIO_SECRET_KEY,
         secure=settings.MINIO_SECURE
     )
-    
-    # Test connection
+
+    # Test connection and buckets existence.
     if not minio_client.bucket_exists(settings.UPLOAD_BUCKET):
         minio_client.make_bucket(settings.UPLOAD_BUCKET)
         logger.info(f"Created bucket: {settings.UPLOAD_BUCKET}")
@@ -45,7 +43,7 @@ except Exception as e:
     logger.error(f"Failed to initialize MinIO client: {e}")
     minio_client = None
 
-# Initialize S3 client (boto3) for compatibility
+# Initialize S3 client (boto3) for compatibility.
 try:
     s3_client = boto3.client(
         's3',
@@ -93,7 +91,7 @@ def upload_file(
                 ExtraArgs=extra_args
             )
         else:
-            logger.error("No storage client available")
+            logger.error("No storage client available.")
             return False
         
         logger.info(f"Uploaded {object_name} to {bucket_name}")
@@ -112,7 +110,7 @@ def upload_bytes(
     metadata: Optional[Dict[str, str]] = None
 ) -> bool:
     """
-    Upload bytes data to storage
+    Upload bytes data to storage.
     """
     try:
         if minio_client:
@@ -156,7 +154,7 @@ def download_file(
     file_path: str
 ) -> bool:
     """
-    Download a file from storage
+    Download a file from storage.
     """
     try:
         if minio_client:
