@@ -149,30 +149,35 @@ services:
     networks:
       - mmino-network
 
-  # ===== MINIO INITIALIZATION =====
+# ===== MINIO INITIALIZATION =====
   minio-init:
-    image: minio/mc:latest
+    build:
+      context: ./minio
+      dockerfile: Dockerfile.mc
     depends_on:
       minio:
         condition: service_healthy
     secrets:
       - minio_root_user
       - minio_root_password
-    entrypoint: >
-      /bin/sh -c "
-      set -e
+    entrypoint: /bin/bash
+    command: >
+      -c "
+      set -e;
+
+      ROOT_USER=$$(cat /run/secrets/minio_root_user);
+      ROOT_PWD=$$(cat /run/secrets/minio_root_password);
+
+      mc alias set myminio http://minio:9000 \"$$ROOT_USER\" \"$$ROOT_PWD\";
       
-      echo 'Setting MinIO alias...'
-      mc alias set myminio http://minio:9000 cat /run/secrets/minio_root_user cat /run/secrets/minio_root_password
-      echo 'Creating buckets...'
-      mc mb --ignore-existing myminio/uploads
-      mc mb --ignore-existing myminio/processed
-      mc mb --ignore-existing myminio/archived
+      echo 'Ensuring buckets exist...';
+      mc mb -p myminio/uploads;
+      mc mb -p myminio/processed;
+      mc mb -p myminio/archived;
       
-      echo 'Setting policies...'
-      mc anonymous set download myminio/processed
+      mc anonymous set download myminio/processed;
       
-      echo 'MinIO initialization complete.'
+      echo 'MinIO initialization complete.';
       "
     networks:
       - mmino-network
@@ -196,12 +201,17 @@ services:
       SECRET_KEY: /run/secrets/secret_key
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
       UPLOAD_EXPIRY_HOURS: 24
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY_FILE: /run/secrets/minio_root_user
+      MINIO_SECRET_KEY_FILE: /run/secrets/minio_root_password
     secrets:
       - postgres_user
       - postgres_password
       - mmino_app_password
       - redis_password
       - secret_key
+      - minio_root_user
+      - minio_root_password
     volumes:
       - ./shared_data:/shared_data
       - ./logs:/app/logs
