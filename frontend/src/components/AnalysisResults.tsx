@@ -31,7 +31,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => {
         )}
         {results.bitrate && (
           <p>
-            <strong>Bitrate:</strong> {Math.round(results.params.bitrate / 1000)} kbps
+            <strong>Bitrate:</strong> {Math.round(parseFloat(results["params"].bitrate))} kbps
           </p>
         )}
         {results.sample_rate && (
