@@ -99,7 +99,7 @@ class JobResponse(JobBase):
 
 class JobDetailResponse(JobResponse):
     file_size: Optional[int] = None
-    duration: Optional[int] = None
+    duration: Optional[float] = None
     bitrate: Optional[int] = None
     sample_rate: Optional[int] = None
     channels: Optional[int] = None
