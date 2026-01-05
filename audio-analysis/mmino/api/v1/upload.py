@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import logging
 
 from mmino.core.config import settings
-from mmino.core.storage import minio_client, upload_file
+from mmino.core.storage import upload_file
 from mmino.core.security import sanitize_filename, validate_file_extension, require_auth
 from mmino.worker.tasks import process_audio_task
 from mmino.db.session import get_db
@@ -25,7 +25,6 @@ router = APIRouter()
 
 @router.post("/", response_model=UploadResponse)
 async def upload_audio(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     operation: OperationType = OperationType.CONVERT,
     params: Optional[Dict[str, Any]] = None,
@@ -127,11 +126,9 @@ async def upload_audio(
             crud.increment_user_job_count(db, user_id)
         
         # Trigger async processing
-        background_tasks.add_task(
-            process_audio_task.delay,
-            job_id,
-            operation.value,
-            validated_params
+        process_audio_task.apply_async(
+            args=[job_id, operation.value, validated_params],
+            queue='audio_processing'
         )
         
         return UploadResponse(
