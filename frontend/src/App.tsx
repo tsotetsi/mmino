@@ -27,11 +27,14 @@ function App() {
 
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get(`/api/v1/jobs/${jobId}/status`);
+        const API_URL = "http://localhost:8000";
+        const response = await axios.get(`${API_URL}/api/v1/jobs/${jobId}/status`);
         if (response.data.status === 'completed' || response.data.status === 'failed') {
           clearInterval(interval);
           if (response.data.status === 'completed') {
-            const detailsResponse = await axios.get(`/api/v1/jobs/${jobId}`);
+            console.log("Completed job:", response.data, typeof(response.data));
+            const detailsResponse = await axios.get(`${API_URL}/api/v1/jobs/${jobId}`);
+            console.log("Job details:", detailsResponse.data);
             setAnalysisResult(detailsResponse.data);
           } else {
             // Handle failed job

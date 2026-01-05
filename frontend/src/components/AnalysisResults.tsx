@@ -19,6 +19,11 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => {
     <div className="p-8">
       <h2 className="text-2xl font-semibold tracking-tight mb-4">Analysis Results</h2>
       <div className="space-y-2">
+        { results.original_filename && (
+          <p>
+            <strong>Original File Name:</strong> {results.original_filename}
+          </p>
+        )}
         {results.duration && (
           <p>
             <strong>Duration:</strong> {results.duration.toFixed(2)}s
@@ -26,7 +31,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => {
         )}
         {results.bitrate && (
           <p>
-            <strong>Bitrate:</strong> {Math.round(results.bitrate / 1000)} kbps
+            <strong>Bitrate:</strong> {Math.round(results.params.bitrate / 1000)} kbps
           </p>
         )}
         {results.sample_rate && (
