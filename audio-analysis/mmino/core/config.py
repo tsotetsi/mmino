@@ -5,7 +5,7 @@ from functools import lru_cache
 import secrets
 from typing import List, Optional, Dict, Any
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator, PostgresDsn, RedisDsn, AnyHttpUrl, ByteSize
 
 
@@ -46,9 +46,11 @@ class Settings(BaseSettings):
     DATABASE_URL: Optional[PostgresDsn] = None
     
     @field_validator("DATABASE_URL", mode="before")
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    @classmethod
+    def assemble_db_connection(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
+        values = info.data
         return PostgresDsn.build(
             scheme="postgresql",
             username=values.get("POSTGRES_USER"),
@@ -69,9 +71,10 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND_DB: int = 1
     
     @field_validator("CELERY_BROKER_URL", mode="before")
-    def assemble_celery_broker_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_celery_broker_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
+        values = info.data
         return str(RedisDsn.build(
             scheme="redis",
             password=values.get("REDIS_PASSWORD"),
@@ -81,9 +84,10 @@ class Settings(BaseSettings):
         ))
     
     @field_validator("CELERY_RESULT_BACKEND", mode="before")
-    def assemble_celery_result_backend_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_celery_result_backend_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
+        values = info.data
         return str(RedisDsn.build(
             scheme="redis",
             password=values.get("REDIS_PASSWORD"),
@@ -100,10 +104,10 @@ class Settings(BaseSettings):
     S3_ENDPOINT_URL: Optional[AnyHttpUrl] = None
     
     @field_validator("S3_ENDPOINT_URL", mode="before")
-    def assemble_s3_endpoint_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+    def assemble_s3_endpoint_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
-        
+        values = info.data
         scheme = "https" if values.get("MINIO_SECURE") else "http"
         return f"{scheme}://{values.get('MINIO_ENDPOINT')}"
     
@@ -162,10 +166,11 @@ class Settings(BaseSettings):
     ENABLE_METRICS: bool = Field(default=True, env="ENABLE_METRICS")
     METRICS_PORT: int = Field(default=9090, env="METRICS_PORT")
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+            env_file=".env", 
+            case_sensitive=True,
+            extra="ignore" # Important: Ignores extra env vars
+        )
 
 
 @lru_cache()
