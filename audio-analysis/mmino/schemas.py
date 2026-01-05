@@ -75,10 +75,10 @@ class JobUpdate(BaseModel):
     status: Optional[JobStatus] = None
     output_path: Optional[str] = None
     error_message: Optional[str] = None
-    file_size: Optional[int] = None
-    duration: Optional[int] = None
-    bitrate: Optional[int] = None
-    sample_rate: Optional[int] = None
+    file_size: Optional[int] = None # in bytes
+    duration: Optional[float] = None # in seconds
+    bitrate: Optional[int] = None # in kbps
+    sample_rate: Optional[int] = None # in Hz
     channels: Optional[int] = None
     completed_at: Optional[datetime] = None
 

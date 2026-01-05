@@ -307,6 +307,7 @@ services:
       sh -c "
         export REDIS_PASSWORD=$$(cat $$REDIS_PASSWORD_FILE) &&
         celery -A mmino.worker.tasks worker 
+        -Q audio_processing,maintenance
         --loglevel=info 
         --concurrency=4
         "
