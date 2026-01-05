@@ -6,7 +6,7 @@ import secrets
 from typing import List, Optional, Dict, Any
 
 from pydantic_settings import BaseSettings
-from pydantic import Field, validator, PostgresDsn, RedisDsn, AnyHttpUrl, ByteSize
+from pydantic import Field, field_validator, PostgresDsn, RedisDsn, AnyHttpUrl, ByteSize
 
 
 class Settings(BaseSettings):
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = Field(default="mmino_db", env="POSTGRES_DB")
     DATABASE_URL: Optional[PostgresDsn] = None
     
-    @validator("DATABASE_URL", pre=True)
+    @field_validator("DATABASE_URL", mode="before")
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     CELERY_BROKER_DB: int = 0
     CELERY_RESULT_BACKEND_DB: int = 1
     
-    @validator("CELERY_BROKER_URL", pre=True)
+    @field_validator("CELERY_BROKER_URL", mode="before")
     def assemble_celery_broker_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
@@ -80,7 +80,7 @@ class Settings(BaseSettings):
             path=f"/{values.get('CELERY_BROKER_DB', 0)}",
         ))
     
-    @validator("CELERY_RESULT_BACKEND", pre=True)
+    @field_validator("CELERY_RESULT_BACKEND", mode="before")
     def assemble_celery_result_backend_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
@@ -99,7 +99,7 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = Field(default=False, env="MINIO_SECURE")
     S3_ENDPOINT_URL: Optional[AnyHttpUrl] = None
     
-    @validator("S3_ENDPOINT_URL", pre=True)
+    @field_validator("S3_ENDPOINT_URL", mode="before")
     def assemble_s3_endpoint_url(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
