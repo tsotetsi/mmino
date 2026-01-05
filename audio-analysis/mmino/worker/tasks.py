@@ -2,12 +2,8 @@ from celery import Celery, Task
 from celery.utils.log import get_task_logger
 import tempfile
 import os
-import shutil
 from datetime import datetime, timedelta
-import time
 from typing import Dict, Any
-import json
-import uuid
 
 from mmino.core.config import settings
 from mmino.core.storage import minio_client, s3_client
@@ -21,7 +17,11 @@ logger = get_task_logger(__name__)
 
 # Initialize Celery
 celery_app = Celery("audio_worker")
-celery_app.config_from_object(settings, namespace='CELERY')
+
+# Load configuration from Pydantic settings
+celery_config = settings.model_dump()
+celery_app.config_from_object(celery_config, namespace='CELERY')
+
 
 # Celery configuration
 celery_app.conf.update(

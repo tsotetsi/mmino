@@ -3,7 +3,7 @@ Configuration settings for the MminoIO Audio Processing API
 """
 from functools import lru_cache
 import secrets
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator, PostgresDsn, RedisDsn, AnyHttpUrl, ByteSize
@@ -71,6 +71,7 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND_DB: int = 1
     
     @field_validator("CELERY_BROKER_URL", mode="before")
+    @classmethod
     def assemble_celery_broker_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
@@ -84,6 +85,7 @@ class Settings(BaseSettings):
         ))
     
     @field_validator("CELERY_RESULT_BACKEND", mode="before")
+    @classmethod
     def assemble_celery_result_backend_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
@@ -104,6 +106,7 @@ class Settings(BaseSettings):
     S3_ENDPOINT_URL: Optional[AnyHttpUrl] = None
     
     @field_validator("S3_ENDPOINT_URL", mode="before")
+    @classmethod
     def assemble_s3_endpoint_url(cls, v: Any, info: Any) -> Any:
         if isinstance(v, str):
             return v
@@ -179,7 +182,6 @@ def get_settings() -> Settings:
     Get cached settings instance
     """
     return Settings()
-
 
 # Global settings instance
 settings = get_settings()
