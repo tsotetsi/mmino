@@ -3,6 +3,10 @@
 > <b>MminoIO</b> is a robust, scalable, and efficient audio processing API designed for handling asynchronous file uploads, processing, and management. Built with a modern Python stack, it leverages FastAPI for high-performance web endpoints, Celery for distributed task queuing, and a suite of powerful tools to ensure reliability and scalability.
 
 <div align="center">
+    <img src="/mmino-logo.svg" alt="mmino logo" width="200" height="200">
+</div>
+
+<div align="center">
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/tsotetsi/mmino/ci-cd.yml?branch=main&logo=github&style=flat)](https://github.com/tsotetsi/mmino/actions)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
