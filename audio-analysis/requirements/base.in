@@ -1,5 +1,5 @@
 ### Core ###
-fastapi[standard]==0.125.0
+fastapi[standard]==0.128.0
 
 ### Scheduling and Monitoring ###
 celery==5.6.0
