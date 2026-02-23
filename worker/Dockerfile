@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Install ffmpeg with more codecs
 RUN apt-get update && \
