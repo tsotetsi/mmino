@@ -10,8 +10,8 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/tsotetsi/mmino/ci-cd.yml?branch=main&logo=github&style=flat)](https://github.com/tsotetsi/mmino/actions)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Python](https://img.shields.io/badge/Python-3.12+-3776ab?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.125.0-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.14+-3776ab?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.131.0-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Pydantic](https://img.shields.io/badge/-Pydantic_v2-E92063?logo=Pydantic)](https://docs.pydantic.dev/latest/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-blue?logo=sqlalchemy&logoColor=white)](https://www.sqlalchemy.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17+-316192?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org)
