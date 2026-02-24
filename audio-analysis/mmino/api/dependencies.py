@@ -197,7 +197,7 @@ async def get_pagination_params(
 
 async def get_sorting_params(
     sort_by: str = Query("created_at", description="Field to sort by"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$", description="Sort order")
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order")
 ) -> Dict[str, str]:
     """
     Get sorting parameters

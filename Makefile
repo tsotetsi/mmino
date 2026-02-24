@@ -44,3 +44,9 @@ logs: ## View Nginx logs in real-time
 
 reload: ## Reload Nginx configuration without downtime
 	$(DOCKER_COMPOSE_PROD) exec nginx nginx -s reload
+
+# --- Update Dependencies ---
+update-deps: ## Update all Python dependencies
+	@echo "Updating Python dependencies..."
+	cd audio-analysis && pip-compile --upgrade requirements/base.in
+	@echo "Dependencies updated."
